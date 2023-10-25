@@ -19,7 +19,7 @@ class Program
             dynamic job = await apiClient.CreateJob(new { name = jobName, profile_id = profile.id.Value });
 
             // UPLOAD PHOTO
-            string filePath = "/Users/kevinle/Desktop/test photos/5png + jpg/CAM11165.JPG";
+            string filePath = "/path/to/photo/test.jpg";
             dynamic res = await apiClient.UploadPhoto(filePath, "job", job.id.Value);
             Console.WriteLine(res);
 
