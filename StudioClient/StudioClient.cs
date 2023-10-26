@@ -46,18 +46,7 @@ public partial class StudioClient
             // Send the request and get the response
             HttpResponseMessage response = await _httpClient.SendAsync(request);
 
-            // Check if the response is successful (status code 200-299)
             string responseContent = await response.Content.ReadAsStringAsync();
-            if (response.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Response: " + responseContent);
-            }
-            else
-            {
-                Console.WriteLine("Request failed with status code: " + (long)response.StatusCode);
-                Console.WriteLine("Request failed body" + responseContent);
-            }
-
             dynamic? jsonData = JsonConvert.DeserializeObject<dynamic>(responseContent);
             if (jsonData != null) return jsonData;
 
