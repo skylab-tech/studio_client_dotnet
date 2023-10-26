@@ -22,14 +22,3 @@ jobs:
           SKYLAB_API_TOKEN: ${{ secrets.SKYLAB_API_TOKEN }}
           SKYLAB_API_URL: ${{ secrets.SKYLAB_API_URL }}
         run: dotnet test StudioClient.Tests
-
-  notify:
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs: [test]
-
-    steps:
-      - name: Notify Slack
-        uses: skylab-tech/github-actions-slack-notifier@v1
-        with:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
