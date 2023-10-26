@@ -14,8 +14,10 @@ public partial class StudioClient
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
 
-    public StudioClient(string apiKey)
+    public StudioClient(string? apiKey = null)
     {
+        if (apiKey == null) throw new Exception("No API key provided");
+
         string baseUrl = Environment.GetEnvironmentVariable("SKYLAB_API_URL") ?? "https://studio.skylabtech.ai";
         _httpClient = new HttpClient();
         _httpClient.BaseAddress = new Uri(baseUrl);

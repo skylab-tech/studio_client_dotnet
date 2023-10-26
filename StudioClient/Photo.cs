@@ -9,7 +9,7 @@ public partial class StudioClient
   public static readonly string[] VALID_EXTENSIONS = { ".png", ".jpg", ".jpeg", "webp" };
   public const int MAX_PHOTO_SIZE = 27 * 1024 * 1024;
 
-  private async Task<dynamic> CreatePhoto(object payload)
+  public async Task<dynamic> CreatePhoto(object payload)
   {
       return await Request("photos", HttpMethod.Post, payload);
   }
@@ -17,11 +17,6 @@ public partial class StudioClient
   public async Task<dynamic> GetPhoto(long photoId)
   {
       return await Request($"photos/{photoId}", HttpMethod.Get);
-  }
-
-  public async Task<dynamic> UpdatePhoto(long photoId, object payload)
-  {
-      return await Request($"photos/{photoId}", HttpMethod.Put, payload);
   }
 
   public async Task<dynamic> DeletePhoto(long photoId)
