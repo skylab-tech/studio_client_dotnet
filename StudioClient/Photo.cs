@@ -77,10 +77,11 @@ public partial class StudioClient
 
           if (!response.IsSuccessStatusCode)
           {
-              throw new Exception("Could not upload photo.");
+            await DeletePhoto(photo.id.Value);
+            throw new Exception("Could not upload photo.");
           }
 
-          return response;
+          return photo;
       }
 
       throw new Exception("An error has occurred uploading the photo.");
