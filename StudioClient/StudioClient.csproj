@@ -1,9 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <PackageId>SkylabStudio</PackageId>
+    <PackageTitle>Skylab Studio Client</PackageTitle>
+    <Version>0.0.1</Version>
+    <Description>.NET client to interface with Skylab Studio Public API</Description>
+    <Company>Skylab Technologies Inc.</Company>
+    <Authors>skylabtech</Authors>
+    <PackageProjectUrl>https://github.com/skylab-tech/studio_client_dotnet</PackageProjectUrl>
+    <PackageIconUrl>https://avatars.githubusercontent.com/u/45469060?s=48&v=4</PackageIconUrl>
+    <PackageTags>studio skylab skylabtech api library .net nuget</PackageTags>
+    <Copyright>Copyright (c) Skylab Technologies Inc.</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

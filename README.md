@@ -39,7 +39,7 @@ var api = new StudioClient("YOUR_SKYLAB_API_TOKEN");
 
 ### Error Handling
 
-By default, the API calls return a JSON response object no matter the type of response.
+By default, the API calls return a JSON (JObject) response object no matter the type of response.
 
 ### Endpoints
 
