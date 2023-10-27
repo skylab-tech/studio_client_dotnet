@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-$ nuget install SkylabTech.SkylabStudio
+$ nuget install SkylabStudio
 ```
 
 ## Example Usage
