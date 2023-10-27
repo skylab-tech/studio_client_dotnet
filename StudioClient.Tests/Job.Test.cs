@@ -1,4 +1,4 @@
-namespace StudioClient.Tests;
+namespace SkylabStudio.Tests;
 
 
 public class JobTest : IAsyncLifetime
