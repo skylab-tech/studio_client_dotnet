@@ -10,7 +10,17 @@ $ nuget install SkylabStudio
 
 ## Example Usage
 
+For all examples, assume:
+
 ```dotnet
+using SkylabStudio;
+
+var apiClient = new StudioClient("YOUR_SKYLAB_API_TOKEN");
+```
+
+```dotnet
+// Example Job Processing Flow with Callback
+
 // CREATE PROFILE
 dynamic profile = await apiClient.CreateProfile(new { name = $"Test Profile", enable_crop = false, enable_color = true });
 
@@ -27,14 +37,6 @@ dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = 
 
 // NOTE: Once the job is queued, it will get processed then complete
 // We will send a response to the specified callback_url with the output photo download urls
-```
-
-For all examples, assume:
-
-```dotnet
-using SkylabTech.SkylabStudio;
-
-var api = new StudioClient("YOUR_SKYLAB_API_TOKEN");
 ```
 
 ### Error Handling
