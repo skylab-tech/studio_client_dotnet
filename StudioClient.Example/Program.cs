@@ -1,34 +1,34 @@
-﻿namespace StudioClient.Example;
-
-
-class Program
+﻿
+namespace SkylabStudio.Example
 {
-    static async Task Main(string[] args)
+    class Program
     {
-        var apiClient = new StudioClient("YOUR_API_TOKEN");
-
-        try
+        static async Task Main(string[] args)
         {
-            Guid randomUuid = Guid.NewGuid();
+            var apiClient = new StudioClient("YOUR_API_TOKEN");
 
-            // CREATE PROFILE
-            dynamic profile = await apiClient.CreateProfile(new { name = $"Test Profile ({randomUuid})", enable_crop = false, enable_color = true });
+            try
+            {
+                Guid randomUuid = Guid.NewGuid();
 
-            // CREATE JOB
-            var jobName = $"test-job-{randomUuid}";
-            dynamic job = await apiClient.CreateJob(new { name = jobName, profile_id = profile.id.Value });
+                // CREATE PROFILE
+                dynamic profile = await apiClient.CreateProfile(new { name = $"Test Profile ({randomUuid})", enable_crop = false, enable_color = true });
 
-            // UPLOAD PHOTO
-            string filePath = "/path/to/photo/test.jpg";
-            dynamic res = await apiClient.UploadPhoto(filePath, "job", job.id.Value);
-            Console.WriteLine(res);
+                // CREATE JOB
+                var jobName = $"test-job-{randomUuid}";
+                dynamic job = await apiClient.CreateJob(new { name = jobName, profile_id = profile.id.Value });
 
-            // QUEUE JOB
-            dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "YOUR_CALLBACK_ENDPOINT" });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred: {ex.Message}");
+                // UPLOAD PHOTO
+                string filePath = "/path/to/photo/test.jpg";
+                dynamic res = await apiClient.UploadPhoto(filePath, "job", job.id.Value);
+
+                // QUEUE JOB
+                dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "YOUR_CALLBACK_ENDPOINT" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
         }
     }
 }
