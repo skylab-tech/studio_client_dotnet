@@ -5,7 +5,7 @@ namespace SkylabStudio.Example
     {
         static async Task Main(string[] args)
         {
-            var apiClient = new StudioClient("YOUR_API_TOKEN");
+            var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"));
 
             try
             {
@@ -19,7 +19,7 @@ namespace SkylabStudio.Example
                 dynamic job = await apiClient.CreateJob(new { name = jobName, profile_id = profile.id.Value });
 
                 // UPLOAD PHOTO
-                string filePath = "/path/to/photo/test.jpg";
+                string filePath = "/Users/kevinle/Desktop/test photos/5png + jpg/CAM11165.JPG";
                 dynamic res = await apiClient.UploadPhoto(filePath, "job", job.id.Value);
 
                 // QUEUE JOB
