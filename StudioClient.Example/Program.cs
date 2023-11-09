@@ -20,7 +20,7 @@ namespace SkylabStudio.Example
 
                 // UPLOAD PHOTO
                 string filePath = "/Users/kevinle/Desktop/test photos/5png + jpg/CAM11165.JPG";
-                dynamic res = await apiClient.UploadPhoto(filePath, "job", job.id.Value);
+                dynamic res = await apiClient.UploadJobPhoto(filePath, job.id.Value);
 
                 // QUEUE JOB
                 dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "YOUR_CALLBACK_ENDPOINT" });

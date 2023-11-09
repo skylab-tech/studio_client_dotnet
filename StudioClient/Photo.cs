@@ -31,7 +31,17 @@ namespace SkylabStudio
             return await Request($"photos/upload_url?{queryParams}", HttpMethod.Get);
         }
 
-        public async Task<dynamic> UploadPhoto(string photoPath, string modelName, long modelId)
+        public async Task<dynamic> UploadJobPhoto(string photoPath, long jobId)
+        {
+            return await UploadPhoto(photoPath, "job", jobId);
+        }
+
+        public async Task<dynamic> UploadProfilePhoto(string photoPath, long profileId)
+        {
+            return await UploadPhoto(photoPath, "profile", profileId);
+        }
+
+        private async Task<dynamic> UploadPhoto(string photoPath, string modelName, long modelId)
         {
             string[] availableModels = { "job", "profile" };
             if (!availableModels.Contains(modelName)) throw new Exception("Invalid model name. Must be 'job' or 'profile'");

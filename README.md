@@ -30,7 +30,7 @@ dynamic job = await apiClient.CreateJob(new { name = jobName, profile_id = profi
 
 // UPLOAD PHOTO
 string filePath = "/path/to/photo";
-dynamic res = await apiClient.UploadPhoto(filePath, "job", job.id.Value);
+dynamic res = await apiClient.UploadJobPhoto(filePath, job.id.Value);
 
 // QUEUE JOB
 dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "YOUR_CALLBACK_ENDPOINT" });
@@ -141,24 +141,16 @@ api.GetPhoto(photoId);
 
 #### Upload photo
 
-This function handles validating a photo, creating a photo object and uploading it to your job/profile's s3 bucket. If the bucket upload process fails, it retries 3 times and if failures persist, the photo object is deleted.
+This function handles validating a photo, creating a photo object and uploading it to your job/profile's s3 bucket.
 
 ```dotnet
-api.UploadPhoto(photoPath, model, modelId)
-```
-
-model can either be 'job' or 'profile'
-
-modelId is the jobs/profiles respective id
-
-```dotnet
-api.UploadPhoto("/path/to/photo", "job", jobId)
+api.UploadJobPhoto("/path/to/photo", jobId);
 ```
 
 OR
 
 ```dotnet
-api.UploadPhoto("/path/to/photo", "profile", profileId);
+api.UploadProfilePhoto("/path/to/photo", profileId);
 ```
 
 If upload fails, the photo object is deleted for you. If upload succeeds and you later decide you no longer want to include that image, use api.DeletePhoto(photoId) to remove it.
@@ -168,7 +160,7 @@ If upload fails, the photo object is deleted for you. If upload succeeds and you
 This will remove the photo from the job/profile's bucket. Useful for when you've accidentally uploaded an image that you'd like removed.
 
 ```dotnet
-api.DeletePhoto(photoId)
+api.DeletePhoto(photoId);
 ```
 
 #### Validate hmac headers
