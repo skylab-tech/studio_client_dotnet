@@ -51,7 +51,7 @@ namespace SkylabStudio
 
             dynamic photo = await CreatePhoto(photoObject);
 
-            byte[] photoData = await File.ReadAllBytesAsync(photoPath);
+            byte[] photoData = File.ReadAllBytes(photoPath);
             if (photoData.Length > 0 && ((photoData.Length / 1024 / 1024) > MAX_PHOTO_SIZE))
             {
                 throw new Exception($"{photoPath} exceeds 27MB");

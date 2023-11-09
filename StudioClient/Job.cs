@@ -25,7 +25,7 @@ namespace SkylabStudio
 
         public async Task<dynamic> UpdateJob(long jobId, object payload)
         {
-            return await Request($"jobs/{jobId}", HttpMethod.Patch, payload);
+            return await Request($"jobs/{jobId}", HttpMethod.Put, payload);
         }
 
         public async Task<dynamic> QueueJob(long jobId, object payload)
