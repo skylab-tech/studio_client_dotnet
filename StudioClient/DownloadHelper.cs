@@ -9,14 +9,13 @@ namespace SkylabStudio
         private async Task<List<Image>?> DownloadBgImages(dynamic profile)
         {
             var httpClient = new HttpClient();
-            SemaphoreSlim semaphore = new SemaphoreSlim(_maxConcurrentDownloads);
 
             List<Image> tempBgs = new List<Image>();
             List<JToken> bgPhotos = ((JArray) profile!.photos).Where(photo => photo["jobId"] != null).ToList();
 
             foreach (dynamic bg in bgPhotos)
             {
-                byte[] bgBuffer = await DownloadImageAsync(bg.originalUrl.Value, semaphore);
+                byte[] bgBuffer = await DownloadImageAsync(bg.originalUrl.Value);
                 Image bgImage = Image.NewFromBuffer(bgBuffer);
                 tempBgs.Add(bgImage);
             }
@@ -25,12 +24,10 @@ namespace SkylabStudio
             
         }
 
-        private static async Task<byte[]?> DownloadImageAsync(string imageUrl, SemaphoreSlim? semaphore = null)
+        private static async Task<byte[]?> DownloadImageAsync(string imageUrl)
         {
             try
             {
-                if (semaphore != null) await semaphore.WaitAsync(); // Wait until a slot is available
-
                 using (HttpClient httpClient = new HttpClient())
                 {
                     // Download the image into a byte array
@@ -93,7 +90,7 @@ namespace SkylabStudio
                 List<Task> downloadTasks = new List<Task>();
                 foreach (string photoId in photoIds)
                 {
-                    downloadTasks.Add(DownloadPhoto(long.Parse(photoId), outputPath, profile));
+                    downloadTasks.Add(DownloadPhoto(long.Parse(photoId), outputPath, profile, null, semaphore));
                 }
 
                 // Wait for all download tasks to complete
@@ -105,9 +102,11 @@ namespace SkylabStudio
                 return false;
             }
         }
-        public async Task<bool> DownloadPhoto(long photoId,  string outputPath, dynamic? profile = null, dynamic? options = null)
+        public async Task<bool> DownloadPhoto(long photoId,  string outputPath, dynamic? profile = null, dynamic? options = null, SemaphoreSlim? semaphore = null)
         {
             try {
+                if (semaphore != null) await semaphore.WaitAsync(); // Wait until a slot is available
+
                 dynamic photo = await GetPhoto(photoId);
                 long profileId = photo.job.profileId;
 
