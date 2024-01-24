@@ -8,8 +8,9 @@ namespace SkylabStudio {
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
+        private readonly int _maxConcurrentDownloads = 5;
 
-        public StudioClient(string? apiKey = null)
+        public StudioClient(string? apiKey = null, dynamic? options = null)
         {
             if (apiKey == null) throw new Exception("No API key provided");
 
@@ -17,6 +18,7 @@ namespace SkylabStudio {
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri(baseUrl);
             _apiKey = apiKey;
+            _maxConcurrentDownloads = options?.maxConcurrentDownloads ?? 5;
         }
 
         private async Task<dynamic> Request(string endpoint, HttpMethod httpMethod, object? payload = null)
