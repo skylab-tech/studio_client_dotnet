@@ -39,6 +39,17 @@ dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = 
 // We will send a response to the specified callback_url with the output photo download urls
 ```
 
+```dotnet
+// OPTIONAL: If you want this SDK to handle photo downloads to a specified output folder
+
+// FETCH COMPLETED JOB (wait until job status is completed)
+dynamic completedJob = await apiClient.GetJob(queuedJob.id.Value);
+
+// DOWNLOAD COMPLETED JOB PHOTOS
+JArray photosList = job.photos;
+await apiClient.DownloadAllPhotos(photosList, job.profile, "photos/output/");
+```
+
 ### Error Handling
 
 By default, the API calls return a JSON (JObject) response object no matter the type of response.
