@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="NetVips" Version="2.4.0" />
-    <PackageReference Include="NetVips.Native.osx-arm64" Version="8.15.0" />
+    <PackageReference Include="NetVips.Native" Version="8.15.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
