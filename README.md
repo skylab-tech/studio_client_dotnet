@@ -46,8 +46,8 @@ dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = 
 dynamic completedJob = await apiClient.GetJob(queuedJob.id.Value);
 
 // DOWNLOAD COMPLETED JOB PHOTOS
-JArray photosList = job.photos;
-await apiClient.DownloadAllPhotos(photosList, job.profile, "photos/output/");
+JArray photosList = completedJob.photos;
+await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "photos/output/");
 ```
 
 ### Error Handling
@@ -165,6 +165,22 @@ api.UploadProfilePhoto("/path/to/photo", profileId);
 ```
 
 If upload fails, the photo object is deleted for you. If upload succeeds and you later decide you no longer want to include that image, use api.DeletePhoto(photoId) to remove it.
+
+#### Download photo(s)
+
+This function handles downloading the output photos to a specified directory.
+
+```dotnet
+JArray photosList = completedJob.photos;
+
+api.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/");
+```
+
+OR
+
+```dotnet
+api.DownloadPhoto(photoId, "/path/to/photo");
+```
 
 #### Delete photo
 
