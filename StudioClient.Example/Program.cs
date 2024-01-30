@@ -27,7 +27,7 @@ namespace SkylabStudio.Example
                 dynamic res = await apiClient.UploadJobPhoto(filePath, job.id.Value);
  
                 // QUEUE JOB
-                dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "http://127.0.0.1:3030" });
+                dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "YOUR_CALLBACK_ENDPOINT" });
 
                 // FETCH COMPLETED JOB (wait until job status is completed)
                 dynamic completedJob = await apiClient.GetJob(queuedJob.id.Value);
