@@ -21,5 +21,10 @@ namespace SkylabStudio
         {
             return await Request($"profiles/{profileId}", HttpMethod.Put, payload);
         }
+
+        public async Task<dynamic> GetProfileBgs(long profileId)
+        {
+            return await Request($"profiles/{profileId}/bg_photos", HttpMethod.Get);
+        }
     }
 }
