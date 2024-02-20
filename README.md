@@ -138,12 +138,6 @@ api.UpdateProfile(profileId, new { name = $"Test Profile", enable_crop = false, 
 
 For all payload options, consult the [API documentation](https://studio-docs.skylabtech.ai/#tag/profile/operation/updateProfileById).
 
-#### List all photos
-
-```dotnet
-api.ListPhotos();
-```
-
 #### Get photo
 
 ```dotnet
