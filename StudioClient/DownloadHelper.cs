@@ -38,7 +38,7 @@ namespace SkylabStudio
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Error downloading image: {ex.Message}");
+                Console.Error.WriteLine($"Error downloading image: {ex.Message}");
                 return null;
             }
         }
@@ -70,7 +70,7 @@ namespace SkylabStudio
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error downloading background image: {ex.Message}");
+                Console.Error.WriteLine($"Error downloading background image: {ex.Message}");
                 return false;
             }
         }
@@ -98,7 +98,7 @@ namespace SkylabStudio
 
                 return true;
             } catch (Exception _e) {
-                Console.WriteLine(_e);
+                Console.Error.WriteLine(_e);
                 return false;
             }
         }
@@ -148,8 +148,8 @@ namespace SkylabStudio
                 return true;
             } catch (Exception _e)
             {
-                Console.WriteLine($"Failed to download photo id: {photoId}");
-                Console.WriteLine(_e);
+                Console.Error.WriteLine($"Failed to download photo id: {photoId}");
+                Console.Error.WriteLine(_e);
                 return false;
             }
         }
