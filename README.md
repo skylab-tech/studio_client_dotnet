@@ -16,6 +16,11 @@ For all examples, assume:
 using SkylabStudio;
 
 var apiClient = new StudioClient("YOUR_SKYLAB_API_TOKEN");
+
+// option to configure max concurrent downloads (for when using DownloadAllPhotos method)
+// defaults to 5 concurrent downloads at a time
+var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5 };
+var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"), studioOptions);
 ```
 
 ```dotnet
@@ -138,12 +143,6 @@ api.UpdateProfile(profileId, new { name = $"Test Profile", enable_crop = false, 
 
 For all payload options, consult the [API documentation](https://studio-docs.skylabtech.ai/#tag/profile/operation/updateProfileById).
 
-#### List all photos
-
-```dotnet
-api.ListPhotos();
-```
-
 #### Get photo
 
 ```dotnet
@@ -173,7 +172,13 @@ This function handles downloading the output photos to a specified directory.
 ```dotnet
 JArray photosList = completedJob.photos;
 
-api.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/");
+DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/");
+Console.WriteLine($"Success photos: [{string.Join(", ", downloadResults.SuccessPhotos)}]");
+Console.WriteLine($"Erorred photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
+
+Output:
+Success photos: [1.jpg, 2.jpg, 3.jpg]
+Erorred photos: [4.jpg]
 ```
 
 OR

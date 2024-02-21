@@ -9,7 +9,8 @@ namespace SkylabStudio.Example
     {
         static async Task Main(string[] args)
         {
-            var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"));
+            var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5 };
+            var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"), studioOptions);
 
             try
             {
@@ -29,17 +30,21 @@ namespace SkylabStudio.Example
                 // QUEUE JOB
                 dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "YOUR_CALLBACK_ENDPOINT" });
 
-                // FETCH COMPLETED JOB (wait until job status is completed)
+                // ...
+                // !(wait until job status is completed by waiting for callback or by polling)!
+                // FETCH COMPLETED JOB
                 dynamic completedJob = await apiClient.GetJob(queuedJob.id.Value);
 
                 // DOWNLOAD COMPLETED JOB PHOTOS
                 JArray photosList = completedJob.photos;
-                await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/");
+                DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/");
+                Console.WriteLine($"Success photos: [{string.Join(", ", downloadResults.SuccessPhotos)}]");
+                Console.WriteLine($"Erorred photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                Console.Error.WriteLine($"An error occurred: {ex.Message}");
             }
         }
     }

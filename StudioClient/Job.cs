@@ -38,6 +38,11 @@ namespace SkylabStudio
             return await Request($"jobs/{jobId}/cancel", HttpMethod.Post);
         }
 
+        public async Task<dynamic> DeleteJob(long jobId)
+        {
+            return await Request($"jobs/{jobId}", HttpMethod.Delete);
+        }
+
         public async Task<dynamic> JobsInFront(long jobId)
         {
             return await Request($"jobs/{jobId}/jobs_in_front", HttpMethod.Get);

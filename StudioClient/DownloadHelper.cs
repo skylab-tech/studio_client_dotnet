@@ -4,6 +4,18 @@ using NetVips;
 
 namespace SkylabStudio
 {
+    public class DownloadAllPhotosResult
+    {
+        public List<string> SuccessPhotos { get; set; }
+        public List<string> ErroredPhotos { get; set; }
+
+        // Default constructor (parameterless)
+        public DownloadAllPhotosResult()
+        {
+            SuccessPhotos = new List<string>();
+            ErroredPhotos = new List<string>();
+        }
+    }
     public partial class StudioClient
     {
         private async Task<List<Image>?> DownloadBgImages(dynamic profile)
@@ -21,11 +33,14 @@ namespace SkylabStudio
             }
 
             return tempBgs;
-            
         }
 
         private static async Task<byte[]?> DownloadImageAsync(string imageUrl)
         {
+            if (!imageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)) {
+                throw new Exception($"Invalid retouchedUrl: \"{imageUrl}\" - Please ensure the job is complete");
+            }
+
             try
             {
                 using (HttpClient httpClient = new HttpClient())
@@ -38,7 +53,7 @@ namespace SkylabStudio
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Error downloading image: {ex.Message}");
+                Console.Error.WriteLine($"Error downloading image: {ex.Message}");
                 return null;
             }
         }
@@ -70,13 +85,16 @@ namespace SkylabStudio
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error downloading background image: {ex.Message}");
+                Console.Error.WriteLine($"Error downloading background image: {ex.Message}");
                 return false;
             }
         }
 
-        public async Task<bool> DownloadAllPhotos(JArray photosList, dynamic profile, string outputPath)
+        public async Task<DownloadAllPhotosResult> DownloadAllPhotos(JArray photosList, dynamic profile, string outputPath)
         {
+            List<string> successPhotos = new List<string>();
+            List<string> erroredPhotos = new List<string>();
+
             try {
                 profile = await GetProfile(profile.id.Value);
                 List<Image> bgs = await DownloadBgImages(profile);
@@ -87,36 +105,56 @@ namespace SkylabStudio
 
                 // Use a semaphore to control access to the download operation
                 var semaphore = new SemaphoreSlim(_maxConcurrentDownloads);
-                List<Task> downloadTasks = new List<Task>();
+                List<Task<Tuple<string, bool>>> downloadTasks = new List<Task<Tuple<string, bool>>>();
                 foreach (string photoId in photoIds)
                 {
                     downloadTasks.Add(DownloadPhoto(long.Parse(photoId), outputPath, profile, null, semaphore));
                 }
 
                 // Wait for all download tasks to complete
-                await Task.WhenAll(downloadTasks);
+                IEnumerable<Tuple<string, bool>> results = await Task.WhenAll(downloadTasks);
 
-                return true;
+                foreach (var result in results)
+                {
+                    if (result.Item2) {
+                        successPhotos.Add(result.Item1);
+                    } else {
+                        erroredPhotos.Add(result.Item1);
+                    }
+                }
+
+                DownloadAllPhotosResult downloadResults = new DownloadAllPhotosResult {
+                    SuccessPhotos = successPhotos,
+                    ErroredPhotos = erroredPhotos
+                };
+
+                return downloadResults;
             } catch (Exception _e) {
-                Console.WriteLine(_e);
-                return false;
+                Console.Error.WriteLine(_e);
+
+                DownloadAllPhotosResult downloadResults = new DownloadAllPhotosResult {
+                    SuccessPhotos = successPhotos,
+                    ErroredPhotos = erroredPhotos
+                };
+
+                return downloadResults;
             }
         }
-        public async Task<bool> DownloadPhoto(long photoId,  string outputPath, dynamic? profile = null, dynamic? options = null, SemaphoreSlim? semaphore = null)
+        public async Task<Tuple<string,bool>> DownloadPhoto(long photoId,  string outputPath, dynamic? profile = null, dynamic? options = null, SemaphoreSlim? semaphore = null)
         {
+            dynamic photo = await GetPhoto(photoId);
+            long profileId = photo.job.profileId;
+
+            string fileName = photo.name.Value;
+
             try {
                 if (semaphore != null) await semaphore.WaitAsync(); // Wait until a slot is available
-
-                dynamic photo = await GetPhoto(photoId);
-                long profileId = photo.job.profileId;
-
-                string fileName = photo.name.Value;
 
                 if (profile == null) {
                     profile = await GetProfile(profileId);
                 }
                 bool isExtract = Convert.ToBoolean(profile.enableExtract.Value);
-                bool replaceBackground = Convert.ToBoolean(profile.enableExtract.Value);
+                bool replaceBackground = Convert.ToBoolean(profile.replaceBackground.Value);
                 bool isDualFileOutput = Convert.ToBoolean(profile.dualFileOutput.Value);
                 bool enableStripPngMetadata = Convert.ToBoolean(profile.enableStripPngMetadata.Value);
                 List<Image>? bgs = options?.bgs;
@@ -139,18 +177,22 @@ namespace SkylabStudio
                     }
 
                     // Regular Extract output
-                    if (!isDualFileOutput) image.WriteToFile(Path.Combine(outputPath, pngFileName));
+                    if (!isDualFileOutput && !replaceBackground) image.WriteToFile(Path.Combine(outputPath, pngFileName));
                 } else { // Non-extracted regular image output
                     image.WriteToFile(Path.Combine(outputPath, fileName));
                 }
 
                 Console.WriteLine($"Successfully downloaded: {fileName}");
-                return true;
+                return new (fileName, true);
             } catch (Exception _e)
             {
-                Console.WriteLine($"Failed to download photo id: {photoId}");
-                Console.WriteLine(_e);
-                return false;
+                Console.Error.WriteLine($"Failed to download photo id: {photoId}");
+                Console.Error.WriteLine(_e);
+
+                return new (fileName, false);
+            } finally
+            {
+                if (semaphore != null) semaphore.Release(); // Release the semaphore
             }
         }
     }
