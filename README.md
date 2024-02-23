@@ -172,7 +172,7 @@ This function handles downloading the output photos to a specified directory.
 ```dotnet
 JArray photosList = completedJob.photos;
 
-DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/");
+DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/path");
 Console.WriteLine($"Success photos: [{string.Join(", ", downloadResults.SuccessPhotos)}]");
 Console.WriteLine($"Erorred photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
 
@@ -184,7 +184,7 @@ Erorred photos: [4.jpg]
 OR
 
 ```dotnet
-api.DownloadPhoto(photoId, "/path/to/photo");
+api.DownloadPhoto(photoId, "/output/folder/path");
 ```
 
 #### Delete photo
