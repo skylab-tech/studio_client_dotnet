@@ -11,7 +11,7 @@
     <PackageProjectUrl>https://github.com/skylab-tech/studio_client_dotnet</PackageProjectUrl>
     <PackageIconUrl>https://avatars.githubusercontent.com/u/45469060</PackageIconUrl>
     <PackageTags>studio skylab skylabtech api library .net nuget</PackageTags>
-    <TargetFrameworks>net5.0;net6.0;net7.0;netstandard2.1;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net47;net471;net472;net48;net481;net5.0;net6.0;net7.0;netstandard2.1;netcoreapp3.1</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -24,6 +24,7 @@
     <PackageReference Include="NetVips.Native" Version="8.15.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <PackageReference Include="RestSharp" Version="110.2.0" />
   </ItemGroup>
 
 </Project>
