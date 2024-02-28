@@ -5,6 +5,17 @@ using RestSharp;
 
 namespace SkylabStudio
 {
+    public class PhotoOptions
+    {
+        public List<Image>? Bgs { get; set; }
+
+        // Default constructor (parameterless)
+        public PhotoOptions()
+        {
+            Bgs = new List<Image>();
+        }
+    }
+
     public class DownloadAllPhotosResult
     {
         public List<string> SuccessPhotos { get; set; }
@@ -94,21 +105,33 @@ namespace SkylabStudio
 
         public async Task<DownloadAllPhotosResult> DownloadAllPhotos(JArray photosList, dynamic profile, string outputPath)
         {
+            if (!Directory.Exists(outputPath))
+            {
+                throw new Exception("Invalid output path");
+            }
+
             List<string> successPhotos = new List<string>();
             List<string> erroredPhotos = new List<string>();
+            List<Image> bgs = new List<Image>();
 
             try {
                 profile = await GetProfile(profile.id.Value);
-                List<Image> bgs = await DownloadBgImages(profile);
+                if (profile?.photos?.Count > 0) {
+                    bgs = await DownloadBgImages(profile);
+                }
 
                 List<string> photoIds = photosList.Select(photo => photo?["id"]?.ToString() ?? "").ToList() ?? new List<string>();
 
                 // Use a semaphore to control access to the download operation
                 var semaphore = new SemaphoreSlim(_maxConcurrentDownloads);
                 List<Task<Tuple<string, bool>>> downloadTasks = new List<Task<Tuple<string, bool>>>();
+                PhotoOptions photoOptions = new PhotoOptions
+                {
+                    Bgs = bgs
+                };
                 foreach (string photoId in photoIds)
                 {
-                    downloadTasks.Add(DownloadPhoto(long.Parse(photoId), outputPath, profile, null, semaphore));
+                    downloadTasks.Add(DownloadPhoto(long.Parse(photoId), outputPath, profile, photoOptions, semaphore));
                 }
 
                 // Wait for all download tasks to complete
@@ -140,7 +163,7 @@ namespace SkylabStudio
                 return downloadResults;
             }
         }
-        public async Task<Tuple<string,bool>> DownloadPhoto(long photoId,  string outputPath, dynamic? profile = null, dynamic? options = null, SemaphoreSlim? semaphore = null)
+        public async Task<Tuple<string,bool>> DownloadPhoto(long photoId,  string outputPath, dynamic? profile = null, PhotoOptions? options = null, SemaphoreSlim? semaphore = null)
         {
             string fileName = "";
 
@@ -166,7 +189,7 @@ namespace SkylabStudio
                 bool replaceBackground = Convert.ToBoolean(profile.replaceBackground.Value);
                 bool isDualFileOutput = Convert.ToBoolean(profile.dualFileOutput.Value);
                 bool enableStripPngMetadata = Convert.ToBoolean(profile.enableStripPngMetadata.Value);
-                List<Image>? bgs = options?.bgs;
+                List<Image>? bgs = options?.Bgs;
 
                 // Load output image 
                 byte[] imageBuffer = await DownloadImageAsync(photo.retouchedUrl.Value);
