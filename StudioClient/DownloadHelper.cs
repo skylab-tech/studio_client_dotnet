@@ -64,7 +64,7 @@ namespace SkylabStudio
                     return imageBuffer;
                 }
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error downloading image: {ex.Message}");
                 return null;
