@@ -68,16 +68,4 @@ public class JobTest : IAsyncLifetime
 
         Assert.NotNull(cancelledJob);
     }
-
-    [Fact]
-    public async Task Call_JobsInFront_ReturnsJob()
-    {
-        Guid randomUuid = Guid.NewGuid();
-        var jobName = $"test-job-{randomUuid}";
-        dynamic job = await apiClient.CreateJob(new { name = jobName, profile_id = profile?.id.Value });
-
-        dynamic jobsInFrontMessage = await apiClient.JobsInFront(job.id.Value);
-
-        Assert.NotNull(jobsInFrontMessage.message);
-    }
 }

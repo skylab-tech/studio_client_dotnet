@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
+using RestSharp;
 
 
 namespace SkylabStudio {
@@ -11,7 +12,7 @@ namespace SkylabStudio {
 
     public partial class StudioClient
     {
-        private readonly HttpClient _httpClient;
+        private readonly RestClient _httpClient;
         private readonly string _apiKey;
         private readonly int _maxConcurrentDownloads = 5;
 
@@ -20,39 +21,40 @@ namespace SkylabStudio {
             if (apiKey == null) throw new Exception("No API key provided");
 
             string baseUrl = Environment.GetEnvironmentVariable("SKYLAB_API_URL") ?? "https://studio.skylabtech.ai";
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(baseUrl);
+            _httpClient = new RestClient(baseUrl);
             _apiKey = apiKey;
             _maxConcurrentDownloads = options?.MaxConcurrentDownloads ?? 5;
         }
 
-        private async Task<dynamic> Request(string endpoint, HttpMethod httpMethod, object? payload = null)
+        private async Task<dynamic> Request(string endpoint, Method httpMethod, object? payload = null)
         {
             var apiEndpoint = $"api/public/v1/{endpoint}";
-            var request = new HttpRequestMessage(httpMethod, apiEndpoint);
+            RestRequest request = new RestRequest(apiEndpoint, httpMethod);
             var headers = BuildRequestHeaders();
 
             foreach (var header in headers)
             {
-                request.Headers.Add(header.Key, header.Value);
+                request.AddHeader(header.Key, header.Value);
             }
 
             if (payload != null)
             {
                 var jsonObj = JsonConvert.SerializeObject(payload);
-                request.Content = new StringContent(jsonObj, Encoding.UTF8, "application/json");
+                request.AddJsonBody(jsonObj);
             }
 
             try
             {
                 // Send the request and get the response
-                HttpResponseMessage response = await _httpClient.SendAsync(request);
+                RestResponse response = await _httpClient.ExecuteAsync(request);
 
-                string responseContent = await response.Content.ReadAsStringAsync();
-                dynamic? jsonData = JsonConvert.DeserializeObject<dynamic>(responseContent);
-                if (jsonData != null) return jsonData;
+                string responseContent = response?.Content ?? "";
+                if (response?.IsSuccessStatusCode ?? false) {
+                    dynamic? jsonData = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                    if (jsonData != null) return jsonData;
+                }
 
-                throw new Exception("Failed to get response from server.");
+                throw new Exception($"Failed to get successful response: {response?.Content}");
             }
             catch (Exception ex)
             {

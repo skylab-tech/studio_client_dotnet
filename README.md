@@ -184,7 +184,8 @@ Erorred photos: [4.jpg]
 OR
 
 ```dotnet
-api.DownloadPhoto(photoId, "/output/folder/path");
+api.DownloadPhoto(photoId, "/path/to/photo.jpg"); # accepts full path OR
+api.DownloadPhoto(photoId, "/path/to/output/folder"); # accepts directory
 ```
 
 #### Delete photo

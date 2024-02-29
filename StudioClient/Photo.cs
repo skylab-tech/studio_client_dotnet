@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
+using RestSharp;
 
 
 namespace SkylabStudio
@@ -11,24 +12,24 @@ namespace SkylabStudio
 
         public async Task<dynamic> CreatePhoto(object payload)
         {
-            return await Request("photos", HttpMethod.Post, payload);
+            return await Request("photos", Method.Post, payload);
         }
 
         public async Task<dynamic> GetPhoto(long photoId)
         {
-            return await Request($"photos/{photoId}", HttpMethod.Get);
+            return await Request($"photos/{photoId}", Method.Get);
         }
 
         public async Task<dynamic> DeletePhoto(long photoId)
         {
-            return await Request($"photos/{photoId}", HttpMethod.Delete);
+            return await Request($"photos/{photoId}", Method.Delete);
         }
 
         public async Task<dynamic> GetUploadUrl(long photoId, string md5 = "", bool useCacheUpload = false)
         {
             string queryParams = $"use_cache_upload={useCacheUpload.ToString().ToLower()}&photo_id={photoId}&content_md5={md5}";
 
-            return await Request($"photos/upload_url?{queryParams}", HttpMethod.Get);
+            return await Request($"photos/upload_url?{queryParams}", Method.Get);
         }
 
         public async Task<dynamic> UploadJobPhoto(string photoPath, long jobId)
@@ -74,16 +75,17 @@ namespace SkylabStudio
             dynamic uploadObj = await GetUploadUrl(photo.id.Value, md5Base64);
             string presignedUrl = uploadObj.url.Value;
 
-            using (var client = new HttpClient())
+            using (RestClient httpClient = new RestClient())
             {
-                var content = new ByteArrayContent(photoData);
-                var request = new HttpRequestMessage(HttpMethod.Put, presignedUrl);
-                request.Content = content;
-                request.Content.Headers.ContentMD5 = MD5.Create().ComputeHash(photoData);
-                if (modelName == "job") request.Headers.Add("X-Amz-Tagging", "job=photo&api=true");            
+                byte[] fileBytes = File.ReadAllBytes(photoPath);
+                RestRequest request = new RestRequest(presignedUrl, Method.Put);
+
+                request.AddParameter("application/octet-stream", fileBytes, ParameterType.RequestBody);
+                request.AddHeader("Content-MD5", Convert.ToBase64String(MD5.Create().ComputeHash(fileBytes)));
+                if (modelName == "job") request.AddHeader("X-Amz-Tagging", "job=photo&api=true");            
 
                 // Upload image via PUT request to presigned url
-                HttpResponseMessage response = await client.SendAsync(request);
+                RestResponse response = await httpClient.ExecuteAsync(request);
 
                 if (!response.IsSuccessStatusCode)
                 {

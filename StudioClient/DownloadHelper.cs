@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Linq;
 using NetVips;
+using RestSharp;
 
 
 namespace SkylabStudio
@@ -31,8 +32,6 @@ namespace SkylabStudio
     {
         private async Task<List<Image>?> DownloadBgImages(dynamic profile)
         {
-            var httpClient = new HttpClient();
-
             List<Image> tempBgs = new List<Image>();
             List<JToken> bgPhotos = ((JArray) profile!.photos).Where(photo => photo["jobId"] != null).ToList();
 
@@ -54,10 +53,13 @@ namespace SkylabStudio
 
             try
             {
-                using (HttpClient httpClient = new HttpClient())
+                using (RestClient httpClient = new RestClient())
                 {
+                    RestRequest request = new RestRequest(imageUrl, Method.Get);
                     // Download the image into a byte array
-                    byte[] imageBuffer = await httpClient.GetByteArrayAsync(imageUrl);
+                    RestResponse response = await httpClient.ExecuteAsync(request);
+
+                    byte[] imageBuffer = response.RawBytes ?? Array.Empty<byte>();
 
                     return imageBuffer;
                 }
@@ -118,8 +120,6 @@ namespace SkylabStudio
                     bgs = await DownloadBgImages(profile);
                 }
 
-                var httpClient = new HttpClient();
-
                 List<string> photoIds = photosList.Select(photo => photo?["id"]?.ToString() ?? "").ToList() ?? new List<string>();
 
                 // Use a semaphore to control access to the download operation
@@ -165,18 +165,22 @@ namespace SkylabStudio
         }
         public async Task<Tuple<string,bool>> DownloadPhoto(long photoId,  string outputPath, dynamic? profile = null, PhotoOptions? options = null, SemaphoreSlim? semaphore = null)
         {
+            string fileName = "";
+
             if (!Directory.Exists(outputPath))
             {
-                throw new Exception("Invalid output path");
+                // Must be a file path - separate outputPath and fileName
+                fileName = Path.GetFileName(outputPath);
+                outputPath = Path.GetDirectoryName(outputPath) ?? "";
             }
 
-            dynamic photo = await GetPhoto(photoId);
-            long profileId = photo.job.profileId;
-
-            string fileName = photo.name.Value;
+            if (semaphore != null) await semaphore.WaitAsync(); // Wait until a slot is available
 
             try {
-                if (semaphore != null) await semaphore.WaitAsync(); // Wait until a slot is available
+                var photo = await GetPhoto(photoId);
+                long profileId = photo.job.profileId;
+
+                if (fileName.Length <= 0) fileName = photo.name.Value;
 
                 if (profile == null) {
                     profile = await GetProfile(profileId);
