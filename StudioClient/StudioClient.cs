@@ -16,6 +16,11 @@ namespace SkylabStudio {
         private readonly string _apiKey;
         private readonly int _maxConcurrentDownloads = 5;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StudioClient"/> class with the specified API key and options.
+        /// </summary>
+        /// <param name="apiKey">The API key used for authentication.</param>
+        /// <param name="options">Optional options for configuring the StudioClient.</param>
         public StudioClient(string? apiKey = null, StudioOptions? options = null)
         {
             if (apiKey == null) throw new Exception("No API key provided");
@@ -26,6 +31,14 @@ namespace SkylabStudio {
             _maxConcurrentDownloads = options?.MaxConcurrentDownloads ?? 5;
         }
 
+        /// <summary>
+        /// Makes an HTTP request to the Skylab API endpoint with the specified parameters.
+        /// </summary>
+        /// <param name="endpoint">The API endpoint to request.</param>
+        /// <param name="httpMethod">The HTTP method (GET, POST, PUT, DELETE, etc.) to use for the request.</param>
+        /// <param name="payload">Optional payload data to include in the request.</param>
+        /// <returns>The dynamic response data from the Skylab API.</returns>
+        /// <exception cref="Exception">Thrown when the HTTP request fails or when the response is not successful.</exception>
         private async Task<dynamic> Request(string endpoint, Method httpMethod, object? payload = null)
         {
             var apiEndpoint = $"api/public/v1/{endpoint}";
@@ -54,14 +67,19 @@ namespace SkylabStudio {
                     if (jsonData != null) return jsonData;
                 }
 
-                throw new Exception($"Failed to get successful response: {response?.Content}");
+                throw new Exception($"{response?.Content}");
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while making the HTTP request.", ex);
+                // Rethrow the exception to be caught by user
+                throw ex;
             }
         }
 
+        /// <summary>
+        /// Builds and returns a dictionary of headers to be included in the Skylab API request.
+        /// </summary>
+        /// <returns>A dictionary of headers with their corresponding values.</returns>
         private Dictionary<string, string> BuildRequestHeaders()
         {
             var clientHeader = "1.1";
@@ -78,6 +96,18 @@ namespace SkylabStudio {
             return headers;
         }
 
+
+        /// <summary>
+        /// Validates HMAC headers by comparing the computed HMAC signature with the provided signature.
+        /// Used to validate job json object in callback is from Skylab.
+        /// </summary>
+        /// <param name="secretKey">The secret key used for HMAC hashing.</param>
+        /// <param name="jobJson">The JSON representation of the job.</param>
+        /// <param name="requestTimestamp">The timestamp of the API request.</param>
+        /// <param name="signature">The provided HMAC signature to be validated.</param>
+        /// <returns>
+        ///   <c>true</c> if the computed HMAC signature matches the provided signature; otherwise, <c>false</c>.
+        /// </returns>
         public bool ValidateHmacHeaders(string secretKey, string jobJson, string requestTimestamp, string signature)
         {
             // Convert the secret key and message to byte arrays
