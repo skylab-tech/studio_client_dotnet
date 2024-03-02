@@ -8,11 +8,12 @@ namespace SkylabStudio
     public class PhotoOptions
     {
         public List<Image>? Bgs { get; set; }
+        public bool? ReturnOnError { get; set; }
 
-        // Default constructor (parameterless)
         public PhotoOptions()
         {
             Bgs = new List<Image>();
+            ReturnOnError = false;
         }
     }
 
@@ -30,6 +31,11 @@ namespace SkylabStudio
     }
     public partial class StudioClient
     {
+        /// <summary>
+        /// Downloads background images based on the provided profile.
+        /// </summary>
+        /// <param name="profile">The profile associated to the job.</param>
+        /// <returns>List of downloaded background images.</returns>
         private async Task<List<Image>?> DownloadBgImages(dynamic profile)
         {
             List<Image> tempBgs = new List<Image>();
@@ -45,6 +51,11 @@ namespace SkylabStudio
             return tempBgs;
         }
 
+        /// <summary>
+        /// Downloads an image asynchronously from the specified URL.
+        /// </summary>
+        /// <param name="imageUrl">The URL of the image to download.</param>
+        /// <returns>The downloaded image as a byte array.</returns>
         private static async Task<byte[]?> DownloadImageAsync(string imageUrl)
         {
             if (!imageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)) {
@@ -71,6 +82,16 @@ namespace SkylabStudio
             }
         }
 
+        /// <summary>
+        /// Downloads and replaces the background image in the input image.
+        /// Required: Profile should have a background uploaded and replace background toggled on
+        /// </summary>
+        /// <param name="fileName">The name of the file being processed.</param>
+        /// <param name="inputImage">The input image to process.</param>
+        /// <param name="outputPath">The path where the processed images will be saved.</param>
+        /// <param name="profile">The profile associated to the job.</param>
+        /// <param name="bgs">List of background images.</param>
+        /// <returns>True if the operation is successful; otherwise, false.</returns>
         private async Task<bool> DownloadReplacedBackgroundImage(string fileName, Image inputImage, string outputPath, dynamic? profile = null, List<Image>? bgs = null)
         {
             try
@@ -98,11 +119,20 @@ namespace SkylabStudio
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error downloading background image: {ex.Message}");
-                return false;
+                string errorMsg = $"Error downloading background image: {ex.Message}";
+                Console.Error.WriteLine(errorMsg);
+                
+                throw new Exception(errorMsg);
             }
         }
 
+        /// <summary>
+        /// Downloads all photos based on a list of photo IDs.
+        /// </summary>
+        /// <param name="photosList">List of photo objects with IDs.</param>
+        /// <param name="profile">The profile associated to the job.</param>
+        /// <param name="outputPath">The path where photos will be downloaded.</param>
+        /// <returns>Download result containing lists of success and errored photo names.</returns>
         public async Task<DownloadAllPhotosResult> DownloadAllPhotos(JArray photosList, dynamic profile, string outputPath)
         {
             if (!Directory.Exists(outputPath))
@@ -127,6 +157,7 @@ namespace SkylabStudio
                 List<Task<Tuple<string, bool>>> downloadTasks = new List<Task<Tuple<string, bool>>>();
                 PhotoOptions photoOptions = new PhotoOptions
                 {
+                    ReturnOnError = true,
                     Bgs = bgs
                 };
                 foreach (string photoId in photoIds)
@@ -163,6 +194,20 @@ namespace SkylabStudio
                 return downloadResults;
             }
         }
+
+        /// <summary>
+        /// Downloads a photo based on the specified photo ID.
+        /// </summary>
+        /// <param name="photoId">The ID of the photo to download.</param>
+        /// <param name="outputPath">The path where the downloaded photo will be saved. Could either be </param>
+        /// <param name="profile">Optional: The profile containing photo processing options.</param>
+        /// <param name="options">Optional: Additional options for photo processing.</param>
+        /// <param name="semaphore">Optional - *Used Interally with DownloadAllPhotos* : SemaphoreSlim for controlling concurrent photo downloads.</param>
+        /// <returns>
+        /// A tuple containing the downloaded photo's filename and a boolean indicating
+        /// whether the download was successful.
+        /// </returns>
+        /// <exception cref="Exception">Thrown on any download error when DownloadPhoto is called without ReturnOnError option.</exception>
         public async Task<Tuple<string,bool>> DownloadPhoto(long photoId,  string outputPath, dynamic? profile = null, PhotoOptions? options = null, SemaphoreSlim? semaphore = null)
         {
             string fileName = "";
@@ -194,7 +239,7 @@ namespace SkylabStudio
                 // Load output image 
                 byte[] imageBuffer = await DownloadImageAsync(photo.retouchedUrl.Value);
                 Image image = Image.NewFromBuffer(imageBuffer);
-            
+
                 if (isExtract) { // Output extract image
                     string pngFileName = $"{Path.GetFileNameWithoutExtension(fileName)}.png";
 
@@ -218,8 +263,10 @@ namespace SkylabStudio
                 return new (fileName, true);
             } catch (Exception _e)
             {
-                Console.Error.WriteLine($"Failed to download photo id: {photoId}");
-                Console.Error.WriteLine(_e);
+                string errorMsg = $"Failed to download photo id: {photoId} - ${_e}";
+                if (options?.ReturnOnError == null) {
+                    throw new Exception(errorMsg);
+                }
 
                 return new (fileName, false);
             } finally
