@@ -72,7 +72,7 @@ namespace SkylabStudio
             byte[] md5Hash = md5.ComputeHash(photoData);
             string md5Base64 = Convert.ToBase64String(md5Hash);
 
-            dynamic uploadObj = await GetUploadUrl(photo.id.Value, md5Base64);
+            dynamic uploadObj = await GetUploadUrl(photo.id.Value, System.Net.WebUtility.UrlEncode(md5Base64));
             string presignedUrl = uploadObj.url.Value;
 
             using (RestClient httpClient = new RestClient())
@@ -81,8 +81,8 @@ namespace SkylabStudio
                 RestRequest request = new RestRequest(presignedUrl, Method.Put);
 
                 request.AddParameter("application/octet-stream", fileBytes, ParameterType.RequestBody);
-                request.AddHeader("Content-MD5", Convert.ToBase64String(MD5.Create().ComputeHash(fileBytes)));
-                if (modelName == "job") request.AddHeader("X-Amz-Tagging", "job=photo&api=true");            
+                request.AddHeader("Content-MD5", Convert.ToBase64String(md5.ComputeHash(fileBytes)));
+                if (modelName == "job") request.AddHeader("X-Amz-Tagging", "job=photo&api=true");
 
                 // Upload image via PUT request to presigned url
                 RestResponse response = await httpClient.ExecuteAsync(request);
