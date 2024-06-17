@@ -7,12 +7,12 @@ namespace SkylabStudio
 {
     public class PhotoOptions
     {
-        public List<Image>? Bgs { get; set; }
+        public List<BgImageResult>? Bgs { get; set; }
         public bool? ReturnOnError { get; set; }
 
         public PhotoOptions()
         {
-            Bgs = new List<Image>();
+            Bgs = new List<BgImageResult>();
             ReturnOnError = false;
         }
     }
@@ -29,6 +29,19 @@ namespace SkylabStudio
             ErroredPhotos = new List<string>();
         }
     }
+
+    public class BgImageResult
+    {
+        public string BgName { get; set; }
+        public Image BgImage { get; set; }
+
+        public BgImageResult(string bgName, Image bgImage)
+        {
+            BgName = bgName;
+            BgImage = bgImage;
+        }
+    }
+
     public partial class StudioClient
     {
         /// <summary>
@@ -36,16 +49,16 @@ namespace SkylabStudio
         /// </summary>
         /// <param name="profile">The profile associated to the job.</param>
         /// <returns>List of downloaded background images.</returns>
-        private async Task<List<Image>?> DownloadBgImages(dynamic profile)
+        private async Task<List<BgImageResult>?> DownloadBgImages(dynamic profile)
         {
-            List<Image> tempBgs = new List<Image>();
+            List<BgImageResult> tempBgs = new List<BgImageResult>();
             List<JToken> bgPhotos = ((JArray) profile!.photos).Where(photo => photo["jobId"] != null).ToList();
 
             foreach (dynamic bg in bgPhotos)
             {
                 byte[] bgBuffer = await DownloadImageAsync(bg.originalUrl.Value);
                 Image bgImage = Image.NewFromBuffer(bgBuffer);
-                tempBgs.Add(bgImage);
+                tempBgs.Add(new BgImageResult(bg.name.Value, bgImage));
             }
 
             return tempBgs;
@@ -92,7 +105,7 @@ namespace SkylabStudio
         /// <param name="profile">The profile associated to the job.</param>
         /// <param name="bgs">List of background images.</param>
         /// <returns>True if the operation is successful; otherwise, false.</returns>
-        private async Task<bool> DownloadReplacedBackgroundImage(string fileName, Image inputImage, string outputPath, dynamic? profile = null, List<Image>? bgs = null)
+        private async Task<bool> DownloadReplacedBackgroundImage(string fileName, Image inputImage, string outputPath, dynamic? profile = null, List<BgImageResult>? bgs = null)
         {
             try
             {
@@ -108,8 +121,8 @@ namespace SkylabStudio
 
                 if (bgs != null && bgs.Count > 0){
                     for (int i = 0; i < bgs.Count; i++) {
-                        string newFileName = i == 0 ? $"{Path.GetFileNameWithoutExtension(fileName)}.{outputFileType}": $"{Path.GetFileNameWithoutExtension(fileName)} ({i+1}).{outputFileType}";
-                        Image resizedBgImage = bgs[i].ThumbnailImage(inputImage.Width, inputImage.Height, crop: Enums.Interesting.Centre);
+                        string newFileName = $"{Path.GetFileNameWithoutExtension(fileName)} ({bgs[i].BgName}).{outputFileType}";
+                        Image resizedBgImage = bgs[i].BgImage.ThumbnailImage(inputImage.Width, inputImage.Height, crop: Enums.Interesting.Centre);
                         Image resultImage = resizedBgImage.Composite2(rgbCutout, Enums.BlendMode.Over);
                         resultImage.WriteToFile(Path.Combine(outputPath, newFileName));
                     }
@@ -142,7 +155,7 @@ namespace SkylabStudio
 
             List<string> successPhotos = new List<string>();
             List<string> erroredPhotos = new List<string>();
-            List<Image> bgs = new List<Image>();
+            List<BgImageResult> bgs = new List<BgImageResult>();
 
             try {
                 profile = await GetProfile(profile.id.Value);
@@ -234,7 +247,7 @@ namespace SkylabStudio
                 bool replaceBackground = Convert.ToBoolean(profile.replaceBackground.Value);
                 bool isDualFileOutput = Convert.ToBoolean(profile.dualFileOutput.Value);
                 bool enableStripPngMetadata = Convert.ToBoolean(profile.enableStripPngMetadata.Value);
-                List<Image>? bgs = options?.Bgs;
+                List<BgImageResult>? bgs = options?.Bgs;
 
                 // Load output image 
                 byte[] imageBuffer = await DownloadImageAsync(photo.retouchedUrl.Value);
