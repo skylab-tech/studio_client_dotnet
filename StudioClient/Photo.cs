@@ -73,7 +73,7 @@ namespace SkylabStudio
         }
 
         /// <summary>
-        /// Uploads a photo associated with a profile.
+        /// Uploads a photo associated with a profile (for profiles with replace bg enabled)
         /// </summary>
         /// <param name="photoPath">The path to the photo file.</param>
         /// <param name="profileId">The ID of the profile associated with the photo.</param>

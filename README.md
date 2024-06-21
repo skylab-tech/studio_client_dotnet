@@ -160,6 +160,7 @@ api.UploadJobPhoto("/path/to/photo", jobId);
 OR
 
 ```dotnet
+// Use the following to upload a background photo for a profile (replace bg enabled)
 api.UploadProfilePhoto("/path/to/photo", profileId);
 ```
 
