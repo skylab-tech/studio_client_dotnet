@@ -8,6 +8,7 @@ namespace SkylabStudio {
     public class StudioOptions
     {
         public int? MaxConcurrentDownloads { get; set; }
+        public bool? ResizeImageIfOversized { get; set; }
     }
 
     public partial class StudioClient
@@ -15,6 +16,7 @@ namespace SkylabStudio {
         private readonly RestClient _httpClient;
         private readonly string _apiKey;
         private readonly int _maxConcurrentDownloads = 5;
+        private readonly bool _resizeImageIfOversized = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StudioClient"/> class with the specified API key and options.
@@ -29,6 +31,7 @@ namespace SkylabStudio {
             _httpClient = new RestClient(baseUrl);
             _apiKey = apiKey;
             _maxConcurrentDownloads = options?.MaxConcurrentDownloads ?? 5;
+            _resizeImageIfOversized = options?.ResizeImageIfOversized ?? false;
         }
 
         /// <summary>

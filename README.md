@@ -17,9 +17,11 @@ using SkylabStudio;
 
 var apiClient = new StudioClient("YOUR_SKYLAB_API_TOKEN");
 
-// option to configure max concurrent downloads (for when using DownloadAllPhotos method)
-// defaults to 5 concurrent downloads at a time
-var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5 };
+// optional: to configure max concurrent downloads (for when using DownloadAllPhotos method)
+//  - defaults to 5 concurrent downloads at a time
+// optional: to resize oversized images to be below Skylab dimension limit
+//  - defaults to false
+var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5, ResizeImageIfOversized = true };
 var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"), studioOptions);
 ```
 

@@ -271,7 +271,7 @@ namespace SkylabStudio
 
         private Image ResizeImage(Image image, PhotoMetadata metadata)
         {
-            if (metadata == null || !metadata.Bytes.HasValue || !metadata.Width.HasValue || !metadata.Height.HasValue)
+            if (_resizeImageIfOversized != true || metadata == null || !metadata.Bytes.HasValue || !metadata.Width.HasValue || !metadata.Height.HasValue)
             {
                 return image;
             }
