@@ -135,7 +135,7 @@ namespace SkylabStudio
 
             var photoObject = new JObject
             {
-                { "name", photoBasename },
+                { "name", $"{Guid.NewGuid()}{fileExtension}" },
                 { "path", photoPath }
             };
             if (modelName == "job") photoObject["job_id"] = modelId; else photoObject["profile_id"] = modelId;
