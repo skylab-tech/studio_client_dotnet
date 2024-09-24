@@ -1,3 +1,4 @@
+using System;
 using System.Drawing.Imaging;
 using System.Security.Cryptography;
 using NetVips;
@@ -98,9 +99,35 @@ namespace SkylabStudio
         /// <param name="photoPath">The path to the photo file.</param>
         /// <param name="jobId">The ID of the job associated with the photo.</param>
         /// <returns>A dynamic object representing the uploaded photo.</returns>
-        public async Task<dynamic> UploadJobPhoto(string photoPath, long jobId)
+        public async Task<dynamic?> UploadJobPhoto(string photoPath, long jobId)
         {
-            return await UploadPhoto(photoPath, "job", jobId);
+            const int maxRetries = 3;
+            int attempt = 0;
+
+            while (attempt < maxRetries)
+            {
+                try
+                {
+                    return await UploadPhoto(photoPath, "job", jobId);
+                }
+                catch (Exception ex)
+                {
+                    attempt++;
+
+                    // If we've reached the max number of retries, rethrow the exception
+                    if (attempt == maxRetries)
+                    {
+                        throw new Exception($"Failed to upload photo after {maxRetries} attempts", ex);
+                    }
+
+                    // Wait for 2 seconds before retrying
+                    await Task.Delay(2000);
+                }
+            }
+
+            // This will never be reached due to the return in the loop,
+            // but we include it to satisfy the method's return type.
+            return null;
         }
 
         /// <summary>
@@ -109,9 +136,35 @@ namespace SkylabStudio
         /// <param name="photoPath">The path to the photo file.</param>
         /// <param name="profileId">The ID of the profile associated with the photo.</param>
         /// <returns>A dynamic object representing the uploaded photo.</returns>
-        public async Task<dynamic> UploadProfilePhoto(string photoPath, long profileId)
+        public async Task<dynamic?> UploadProfilePhoto(string photoPath, long profileId)
         {
-            return await UploadPhoto(photoPath, "profile", profileId);
+            const int maxRetries = 3;
+            int attempt = 0;
+
+            while (attempt < maxRetries)
+            {
+                try
+                {
+                    return await UploadPhoto(photoPath, "profile", profileId);
+                }
+                catch (Exception ex)
+                {
+                    attempt++;
+
+                    // If we've reached the max number of retries, rethrow the exception
+                    if (attempt == maxRetries)
+                    {
+                        throw new Exception($"Failed to upload photo after {maxRetries} attempts", ex);
+                    }
+
+                    // Wait for 2 seconds before retrying
+                    await Task.Delay(2000);
+                }
+            }
+
+            // This will never be reached due to the return in the loop,
+            // but we include it to satisfy the method's return type.
+            return null;
         }
 
         /// <summary>
