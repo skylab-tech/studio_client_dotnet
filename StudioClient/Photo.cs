@@ -1,4 +1,6 @@
+using System.Drawing.Imaging;
 using System.Security.Cryptography;
+using NetVips;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 
@@ -13,9 +15,38 @@ namespace SkylabStudio
         public static readonly string[] VALID_EXTENSIONS = { ".png", ".jpg", ".jpeg", ".webp" };
 
         /// <summary>
+        /// Maximum allowed pixels for a photo.
+        /// </summary>
+        public const int MAX_PHOTO_PIXELS = 27_000_000;
+
+        /// <summary>
         /// Maximum allowed size for a photo in bytes.
         /// </summary>
         public const int MAX_PHOTO_SIZE = 27 * 1024 * 1024;
+
+        /// <summary>
+        /// Maximum allowed pixel length for height/width.
+        /// </summary>
+        public const int MAX_DIMENSION = 6400;
+
+        public class Dimensions
+        {
+            public int Width { get; set; }
+            public int Height { get; set; }
+        }
+
+        public class PhotoMetadata
+        {
+            public ImageFormat? Format { get; set; }
+            public int? Width { get; set; }
+            public int? Height { get; set; }
+            public int? Orientation { get; set; }
+
+            public long? Bytes { get; set; }
+
+
+            public PhotoMetadata() { }
+        }
 
         /// <summary>
         /// Creates a new photo with the specified payload.
@@ -104,7 +135,7 @@ namespace SkylabStudio
 
             var photoObject = new JObject
             {
-                { "name", $"{Guid.NewGuid()}{fileExtension}" },
+                { "name", photoBasename },
                 { "path", photoPath }
             };
             if (modelName == "job") photoObject["job_id"] = modelId; else photoObject["profile_id"] = modelId;
@@ -116,6 +147,12 @@ namespace SkylabStudio
             {
                 throw new Exception($"{photoPath} exceeds 27MB");
             }
+
+            PhotoMetadata photoMetadata = GetImageMetadata(photoData);
+            Image image = Image.NewFromBuffer(photoData);
+
+            Image modifiedImage = ResizeImage(image, photoMetadata);
+
 
             var md5 = MD5.Create();
             byte[] md5Hash = md5.ComputeHash(photoData);
@@ -147,6 +184,111 @@ namespace SkylabStudio
             }
 
             throw new Exception("An error has occurred uploading the photo.");
+        }
+
+        private PhotoMetadata GetImageMetadata(byte[] imageData)
+        {
+            PhotoMetadata photoMetadata = new PhotoMetadata();
+
+            // Load the image from the byte array
+            using (MemoryStream ms = new MemoryStream(imageData))
+            {
+                photoMetadata.Bytes = ms.Length;
+                using (System.Drawing.Image image = System.Drawing.Image.FromStream(ms))
+                {
+                    photoMetadata.Width = image.Width; photoMetadata.Height = image.Height;
+
+                    photoMetadata.Orientation = GetImageOrientation(image);
+
+                    // Example: Save the image to a different file
+                    ImageFormat format = image.RawFormat;
+                    photoMetadata.Format = format;
+
+                    Console.WriteLine(format);
+                }
+            }
+
+            return photoMetadata;
+        }
+
+        private int GetImageOrientation(System.Drawing.Image image)
+        {
+            // The EXIF orientation tag number is 0x0112 (274 in decimal)
+            const int orientationId = 0x0112;
+
+            // Check if the image has property items (EXIF data)
+            if (image.PropertyIdList.Contains(orientationId))
+            {
+                // Get the orientation property
+                PropertyItem propItem = image.GetPropertyItem(orientationId);
+
+                // The orientation value is stored as a short (16-bit integer)
+                return BitConverter.ToUInt16(propItem.Value, 0);
+            }
+            else
+            {
+                // If no orientation property exists, assume "normal" orientation (1)
+                return 1;
+            }
+        }
+
+        private bool IsSizeInvalid(long? sizeInBytes, int? width, int? height)
+        {
+            return (
+                sizeInBytes > 27 * 1024 * 1024 || // MB
+                width > 6400 ||
+                height > 6400 ||
+                width * height > 27000000 // >27MP
+            );
+        }
+
+        private Dimensions GetNormalSize(int width, int height, int? orientation)
+        {
+            return (orientation ?? 0) >= 5
+                ? new Dimensions { Width = height, Height = width }
+                : new Dimensions { Width = width, Height = height };
+        }
+
+        private Dimensions CalculateFinalSize(int? width, int? height, int? orientation)
+        {
+            if (width == null && height == null)
+            {
+                throw new ArgumentNullException(nameof(width));
+            }
+
+            var normalSize = GetNormalSize(width ?? 0, height ?? 0, orientation);
+
+            double ratio = (double)normalSize.Width / normalSize.Height;
+            int pixels = normalSize.Width * normalSize.Height;
+            double scale = Math.Sqrt((double)pixels / MAX_PHOTO_PIXELS);
+
+            int finalHeight = (int)Math.Floor(normalSize.Height / scale);
+            int finalWidth = (int)Math.Floor((ratio * normalSize.Height) / scale);
+
+            return new Dimensions { Width = finalWidth, Height = finalHeight };
+        }
+
+
+        private Image ResizeImage(Image image, PhotoMetadata metadata)
+        {
+            if (metadata == null || !metadata.Bytes.HasValue || !metadata.Width.HasValue || !metadata.Height.HasValue)
+            {
+                return image;
+            }
+
+            if (IsSizeInvalid(metadata.Bytes, metadata.Width, metadata.Height))
+            {
+                // resize image to calculated final size
+                Dimensions finalDimensions = CalculateFinalSize(metadata.Width, metadata.Height, metadata.Orientation);
+
+                Console.WriteLine($" {finalDimensions.Width} x {finalDimensions.Height} ");
+
+                Image finalImage = image.ThumbnailImage(finalDimensions.Width, finalDimensions.Height, noRotate: false, crop: Enums.Interesting.Centre, size: Enums.Size.Both);
+
+                return finalImage;
+            }
+
+            return image;
         }
     }
 }
