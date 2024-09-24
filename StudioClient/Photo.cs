@@ -1,4 +1,3 @@
-using System;
 using System.Drawing.Imaging;
 using System.Security.Cryptography;
 using NetVips;
@@ -253,11 +252,8 @@ namespace SkylabStudio
 
                     photoMetadata.Orientation = GetImageOrientation(image);
 
-                    // Example: Save the image to a different file
                     ImageFormat format = image.RawFormat;
                     photoMetadata.Format = format;
-
-                    Console.WriteLine(format);
                 }
             }
 
@@ -333,8 +329,6 @@ namespace SkylabStudio
             {
                 // resize image to calculated final size
                 Dimensions finalDimensions = CalculateFinalSize(metadata.Width, metadata.Height, metadata.Orientation);
-
-                Console.WriteLine($" {finalDimensions.Width} x {finalDimensions.Height} ");
 
                 Image finalImage = image.ThumbnailImage(finalDimensions.Width, finalDimensions.Height, noRotate: false, crop: Enums.Interesting.Centre, size: Enums.Size.Both);
 
