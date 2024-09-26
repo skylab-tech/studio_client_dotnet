@@ -202,12 +202,15 @@ namespace SkylabStudio
 
             PhotoMetadata photoMetadata = GetImageMetadata(photoData);
             Image image = Image.NewFromBuffer(photoData);
-
             Image modifiedImage = ResizeImage(image, photoMetadata);
 
-
+            string format = ".jpg";
+            if (photoMetadata.Format != null && photoMetadata.Format.Equals(ImageFormat.Png)) {
+                format = ".png";
+            }
+            byte[] fileBytes = modifiedImage.WriteToBuffer($".{format}[Q=98]");
             var md5 = MD5.Create();
-            byte[] md5Hash = md5.ComputeHash(photoData);
+            byte[] md5Hash = md5.ComputeHash(fileBytes);
             string md5Base64 = Convert.ToBase64String(md5Hash);
 
             dynamic uploadObj = await GetUploadUrl(photo.id.Value, System.Net.WebUtility.UrlEncode(md5Base64));
@@ -215,7 +218,6 @@ namespace SkylabStudio
 
             using (RestClient httpClient = new RestClient())
             {
-                byte[] fileBytes = File.ReadAllBytes(photoPath);
                 RestRequest request = new RestRequest(presignedUrl, Method.Put);
 
                 request.AddParameter("application/octet-stream", fileBytes, ParameterType.RequestBody);
