@@ -97,8 +97,9 @@ namespace SkylabStudio
         /// </summary>
         /// <param name="photoPath">The path to the photo file.</param>
         /// <param name="jobId">The ID of the job associated with the photo.</param>
+        /// <param name="photoBuffer">The photo buffer byte array (reads photo from byte array instead of photo path)</param>
         /// <returns>A dynamic object representing the uploaded photo.</returns>
-        public async Task<dynamic?> UploadJobPhoto(string photoPath, long jobId)
+        public async Task<dynamic?> UploadJobPhoto(string photoPath, long jobId, byte[]? photoBuffer = null)
         {
             const int maxRetries = 3;
             int attempt = 0;
@@ -107,7 +108,7 @@ namespace SkylabStudio
             {
                 try
                 {
-                    return await UploadPhoto(photoPath, "job", jobId);
+                    return await UploadPhoto(photoPath, "job", jobId, photoBuffer);
                 }
                 catch (Exception ex)
                 {
@@ -134,8 +135,9 @@ namespace SkylabStudio
         /// </summary>
         /// <param name="photoPath">The path to the photo file.</param>
         /// <param name="profileId">The ID of the profile associated with the photo.</param>
+        /// <param name="photoBuffer">The photo buffer byte array (reads photo from byte array instead of photo path)</param>
         /// <returns>A dynamic object representing the uploaded photo.</returns>
-        public async Task<dynamic?> UploadProfilePhoto(string photoPath, long profileId)
+        public async Task<dynamic?> UploadProfilePhoto(string photoPath, long profileId, byte[] photoBuffer = null)
         {
             const int maxRetries = 3;
             int attempt = 0;
@@ -144,7 +146,7 @@ namespace SkylabStudio
             {
                 try
                 {
-                    return await UploadPhoto(photoPath, "profile", profileId);
+                    return await UploadPhoto(photoPath, "profile", profileId, photoBuffer);
                 }
                 catch (Exception ex)
                 {
@@ -172,8 +174,9 @@ namespace SkylabStudio
         /// <param name="photoPath">The path to the photo file.</param>
         /// <param name="modelName">The name of the model (job or profile).</param>
         /// <param name="modelId">The ID of the model associated with the photo.</param>
+        /// <param name="photoBuffer">The photo buffer byte array (reads photo from byte array instead of photo path)</param>
         /// <returns>A dynamic object representing the uploaded photo.</returns>
-        private async Task<dynamic> UploadPhoto(string photoPath, string modelName, long modelId)
+        private async Task<dynamic> UploadPhoto(string photoPath, string modelName, long modelId, byte[]? photoBuffer)
         {
             string[] availableModels = { "job", "profile" };
             if (!availableModels.Contains(modelName)) throw new Exception("Invalid model name. Must be 'job' or 'profile'");
@@ -185,16 +188,7 @@ namespace SkylabStudio
                 throw new Exception("Photo has an invalid extension. Supported extensions (.jpg, .jpeg, .png, .webp)");
             }
 
-            var photoObject = new JObject
-            {
-                { "name", $"{Guid.NewGuid()}{fileExtension}" },
-                { "path", photoPath }
-            };
-            if (modelName == "job") photoObject["job_id"] = modelId; else photoObject["profile_id"] = modelId;
-
-            dynamic photo = await CreatePhoto(photoObject);
-
-            byte[] photoData = File.ReadAllBytes(photoPath);
+            byte[] photoData = photoBuffer != null ? photoBuffer : File.ReadAllBytes(photoPath);
             if (photoData.Length > 0 && ((photoData.Length / 1024 / 1024) > MAX_PHOTO_SIZE))
             {
                 throw new Exception($"{photoPath} exceeds 27MB");
@@ -203,6 +197,16 @@ namespace SkylabStudio
             PhotoMetadata photoMetadata = GetImageMetadata(photoData);
             Image image = Image.NewFromBuffer(photoData);
             Image modifiedImage = ResizeImage(image, photoMetadata);
+
+            var photoObject = new JObject
+            {
+                { "name", $"{Guid.NewGuid()}{fileExtension}" },
+                { "path", photoPath },
+                { "resized", image.Height != modifiedImage.Height }
+            };
+            if (modelName == "job") photoObject["job_id"] = modelId; else photoObject["profile_id"] = modelId;
+
+            dynamic photo = await CreatePhoto(photoObject);
 
             string format = ".jpg";
             if (photoMetadata.Format != null && photoMetadata.Format.Equals(ImageFormat.Png)) {
