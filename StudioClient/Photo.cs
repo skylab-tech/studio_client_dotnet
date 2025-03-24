@@ -308,17 +308,28 @@ namespace SkylabStudio
         {
             if (width == null && height == null)
             {
-                throw new ArgumentNullException(nameof(width));
+                throw new ArgumentNullException(nameof(width), "At least one of width or height must be provided.");
             }
 
             var normalSize = GetNormalSize(width ?? 0, height ?? 0, orientation);
 
-            double ratio = (double)normalSize.Width / normalSize.Height;
-            int pixels = normalSize.Width * normalSize.Height;
-            double scale = Math.Sqrt((double)pixels / MAX_PHOTO_PIXELS);
+            int originalWidth = normalSize.Width;
+            int originalHeight = normalSize.Height;
 
-            int finalHeight = (int)Math.Floor(normalSize.Height / scale);
-            int finalWidth = (int)Math.Floor((ratio * normalSize.Height) / scale);
+            double ratio = (double)originalWidth / originalHeight;
+
+            // If both dimensions are <= 6400, no resizing needed
+            if (originalWidth <= 6400 && originalHeight <= 6400)
+            {
+                return new Dimensions { Width = originalWidth, Height = originalHeight };
+            }
+
+            double widthScale = originalWidth > 6400 ? (double)6400 / originalWidth : 1.0;
+            double heightScale = originalHeight > 6400 ? (double)6400 / originalHeight : 1.0;
+            double scale = Math.Min(widthScale, heightScale); // pick the stricter scale
+
+            int finalWidth = (int)Math.Floor(originalWidth * scale);
+            int finalHeight = (int)Math.Floor(originalHeight * scale);
 
             return new Dimensions { Width = finalWidth, Height = finalHeight };
         }
