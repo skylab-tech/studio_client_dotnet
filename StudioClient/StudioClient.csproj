@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>SkylabStudio</PackageId>
     <PackageTitle>Skylab Studio Client</PackageTitle>
-    <Version>0.0.3</Version>
+    <Version>0.0.15</Version>
     <Description>.NET client to interface with Skylab Studio Public API</Description>
     <Company>Skylab Technologies Inc.</Company>
     <Authors>skylabtech</Authors>
