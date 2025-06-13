@@ -9,6 +9,9 @@ namespace SkylabStudio {
     {
         public int? MaxConcurrentDownloads { get; set; }
         public bool? ResizeImageIfOversized { get; set; }
+        public int? MaxMemory { get; set; }
+        public int? PngCompression { get; set; }
+        public int? PngEffort { get; set; }
     }
 
     public partial class StudioClient
@@ -17,6 +20,9 @@ namespace SkylabStudio {
         private readonly string _apiKey;
         private readonly int _maxConcurrentDownloads = 5;
         private readonly bool _resizeImageIfOversized = false;
+        private readonly int _maxMemory = 100;
+        private readonly int _pngCompression = 6;
+        private readonly int _pngEffort = 7;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StudioClient"/> class with the specified API key and options.
@@ -32,6 +38,12 @@ namespace SkylabStudio {
             _apiKey = apiKey;
             _maxConcurrentDownloads = options?.MaxConcurrentDownloads ?? 5;
             _resizeImageIfOversized = options?.ResizeImageIfOversized ?? false;
+            _maxMemory = options?.MaxMemory ?? 100;
+            _pngCompression = options?.PngCompression ?? 6;
+            _pngEffort = options?.PngEffort ?? 7;
+
+            // Set VIPS_DISC_THRESHOLD environment variable before any image operations
+            Environment.SetEnvironmentVariable("VIPS_DISC_THRESHOLD", $"{_maxMemory}m");
         }
 
         /// <summary>
@@ -129,6 +141,6 @@ namespace SkylabStudio {
             }
 
             return signature == generatedSignature;
-        } 
+        }
     }
 }

@@ -177,11 +177,11 @@ JArray photosList = completedJob.photos;
 
 DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/path");
 Console.WriteLine($"Success photos: [{string.Join(", ", downloadResults.SuccessPhotos)}]");
-Console.WriteLine($"Erorred photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
+Console.WriteLine($"Errored photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
 
 Output:
 Success photos: [1.jpg, 2.jpg, 3.jpg]
-Erorred photos: [4.jpg]
+Errored photos: [4.jpg]
 ```
 
 OR
