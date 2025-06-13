@@ -1,5 +1,4 @@
-﻿
-using System.Security.Principal;
+﻿using System.Security.Principal;
 using NetVips;
 using Newtonsoft.Json.Linq;
 
