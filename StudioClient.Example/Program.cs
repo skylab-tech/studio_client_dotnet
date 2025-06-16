@@ -1,4 +1,5 @@
-﻿using System.Security.Principal;
+﻿
+using System.Security.Principal;
 using NetVips;
 using Newtonsoft.Json.Linq;
 
@@ -23,11 +24,11 @@ namespace SkylabStudio.Example
                 dynamic job = await apiClient.CreateJob(new { name = jobName, profile_id = profile.id.Value });
 
                 // UPLOAD PHOTO
-                string filePath = "/Users/Paul/Downloads/dotnet_image/small_SENT18-009L171117-0701.jpg";
+                string filePath = "/path/to/photo";
                 dynamic res = await apiClient.UploadJobPhoto(filePath, job.id.Value);
 
                 // QUEUE JOB
-                dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "https://webhook.site/439248ba-db00-4088-bcc6-3b5ca3a4aeb2" });
+                dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "YOUR_CALLBACK_ENDPOINT" });
 
                 // ...
                 // !(wait until job status is completed by waiting for callback or by polling)!
@@ -36,7 +37,7 @@ namespace SkylabStudio.Example
 
                 // DOWNLOAD COMPLETED JOB PHOTOS
                 JArray photosList = completedJob.photos;
-                DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/Users/Paul/Downloads/dotnet_image/results/");
+                DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/");
                 Console.WriteLine($"Success photos: [{string.Join(", ", downloadResults.SuccessPhotos)}]");
                 Console.WriteLine($"Errored photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
 
