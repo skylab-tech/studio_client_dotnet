@@ -1,5 +1,4 @@
-﻿
-using System.Security.Principal;
+﻿using System.Security.Principal;
 using NetVips;
 using Newtonsoft.Json.Linq;
 
@@ -7,7 +6,12 @@ namespace SkylabStudio.Example
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
+        {
+            MainAsync(args).GetAwaiter().GetResult();
+        }
+
+        static async Task MainAsync(string[] args)
         {
             var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5 };
             var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"), studioOptions);
