@@ -1,7 +1,10 @@
-using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using NetVips;
+using Newtonsoft.Json.Linq;
 using RestSharp;
-
 
 namespace SkylabStudio
 {
@@ -124,7 +127,11 @@ namespace SkylabStudio
                         string newFileName = $"{Path.GetFileNameWithoutExtension(fileName)} ({bgs[i].BgName}).{outputFileType}";
                         Image resizedBgImage = bgs[i].BgImage.ThumbnailImage(inputImage.Width, inputImage.Height, crop: Enums.Interesting.Centre);
                         Image resultImage = resizedBgImage.Composite2(rgbCutout, Enums.BlendMode.Over);
-                        resultImage.WriteToFile(Path.Combine(outputPath, newFileName));
+                        resultImage.WriteToFile(Path.Combine(outputPath, newFileName), new VOption
+                        {
+                            { "compression", _pngCompression },
+                            { "effort", _pngEffort }
+                        });
                     }
                 }
 
@@ -134,7 +141,7 @@ namespace SkylabStudio
             {
                 string errorMsg = $"Error downloading background image: {ex.Message}";
                 Console.Error.WriteLine(errorMsg);
-                
+
                 throw new Exception(errorMsg);
             }
         }
@@ -249,7 +256,7 @@ namespace SkylabStudio
                 bool enableStripPngMetadata = Convert.ToBoolean(profile.enableStripPngMetadata.Value);
                 List<BgImageResult>? bgs = options?.Bgs;
 
-                // Load output image 
+                // Load output image
                 byte[] imageBuffer = await DownloadImageAsync(photo.retouchedUrl.Value);
                 Image image = Image.NewFromBuffer(imageBuffer);
 
@@ -259,7 +266,11 @@ namespace SkylabStudio
                     // Dual File Output will provide an image in the format specified in the outputFileType field
                     // and an extracted image as a PNG.
                     if (isDualFileOutput) {
-                        image.WriteToFile(Path.Combine(outputPath, pngFileName));
+                        image.WriteToFile(Path.Combine(outputPath, pngFileName), new VOption
+                        {
+                            { "compression", _pngCompression },
+                            { "effort", _pngEffort }
+                        });
                     }
 
                     if (replaceBackground) {
@@ -267,7 +278,11 @@ namespace SkylabStudio
                     }
 
                     // Regular Extract output
-                    if (!isDualFileOutput && !replaceBackground) image.WriteToFile(Path.Combine(outputPath, pngFileName));
+                    if (!isDualFileOutput && !replaceBackground) image.WriteToFile(Path.Combine(outputPath, pngFileName), new VOption
+                    {
+                        { "compression", _pngCompression },
+                        { "effort", _pngEffort }
+                    });
                 } else { // Non-extracted regular image output
                     image.WriteToFile(Path.Combine(outputPath, fileName));
                 }
