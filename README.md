@@ -17,15 +17,15 @@ using SkylabStudio;
 
 var apiClient = new StudioClient("YOUR_SKYLAB_API_TOKEN");
 
-// optional: MaxConcurrentDownloads to configure max concurrent downloads (for when using DownloadAllPhotos method)
+// optional: MaxConcurrentDownloads to configure max concurrent downloads for when using DownloadAllPhotos method
 //  - defaults to 5 concurrent downloads at a time
 // optional: ResizeImageIfOversized to resize oversized images to be below Skylab dimension limit
 //  - defaults to false
 // optional: MaxMemory to configure max memory usage (in megabytes MB) for when using DownloadAllPhotos method
 //  - defaults to 100
-// optional: PngCompression to configure png compression level (0-9)
+// optional: PngCompression to configure png compression level (value range 0-9)
 //  - defaults to 6
-// optional: PngEffort to configure png effort level (1-9)
+// optional: PngEffort to configure png effort level (value range 1-9)
 //  - defaults to 7
 var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5, ResizeImageIfOversized = true, MaxMemory = 100, PngCompression = 6, PngEffort = 7 };
 var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"), studioOptions);
