@@ -17,11 +17,17 @@ using SkylabStudio;
 
 var apiClient = new StudioClient("YOUR_SKYLAB_API_TOKEN");
 
-// optional: to configure max concurrent downloads (for when using DownloadAllPhotos method)
+// optional: MaxConcurrentDownloads to configure max concurrent downloads for when using DownloadAllPhotos method
 //  - defaults to 5 concurrent downloads at a time
-// optional: to resize oversized images to be below Skylab dimension limit
+// optional: ResizeImageIfOversized to resize oversized images to be below Skylab dimension limit
 //  - defaults to false
-var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5, ResizeImageIfOversized = true };
+// optional: MaxMemory to configure max memory usage (in megabytes MB) for when using DownloadAllPhotos method
+//  - defaults to 100
+// optional: PngCompression to configure png compression level (value range 0-9)
+//  - defaults to 6
+// optional: PngEffort to configure png effort level (value range 1-9)
+//  - defaults to 7
+var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5, ResizeImageIfOversized = true, MaxMemory = 100, PngCompression = 6, PngEffort = 7 };
 var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"), studioOptions);
 ```
 
@@ -177,11 +183,11 @@ JArray photosList = completedJob.photos;
 
 DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/path");
 Console.WriteLine($"Success photos: [{string.Join(", ", downloadResults.SuccessPhotos)}]");
-Console.WriteLine($"Erorred photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
+Console.WriteLine($"Errored photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
 
 Output:
 Success photos: [1.jpg, 2.jpg, 3.jpg]
-Erorred photos: [4.jpg]
+Errored photos: [4.jpg]
 ```
 
 OR

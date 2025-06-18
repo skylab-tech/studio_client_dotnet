@@ -1,5 +1,4 @@
-﻿
-using System.Security.Principal;
+﻿using System.Security.Principal;
 using NetVips;
 using Newtonsoft.Json.Linq;
 
@@ -7,7 +6,12 @@ namespace SkylabStudio.Example
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
+        {
+            MainAsync(args).GetAwaiter().GetResult();
+        }
+
+        static async Task MainAsync(string[] args)
         {
             var studioOptions = new StudioOptions { MaxConcurrentDownloads = 5 };
             var apiClient = new StudioClient(Environment.GetEnvironmentVariable("SKYLAB_API_TOKEN"), studioOptions);
@@ -26,7 +30,7 @@ namespace SkylabStudio.Example
                 // UPLOAD PHOTO
                 string filePath = "/path/to/photo";
                 dynamic res = await apiClient.UploadJobPhoto(filePath, job.id.Value);
- 
+
                 // QUEUE JOB
                 dynamic queuedJob = await apiClient.QueueJob(job.id.Value, new { callback_url = "YOUR_CALLBACK_ENDPOINT" });
 
@@ -39,7 +43,7 @@ namespace SkylabStudio.Example
                 JArray photosList = completedJob.photos;
                 DownloadAllPhotosResult downloadResults = await apiClient.DownloadAllPhotos(photosList, completedJob.profile, "/output/folder/");
                 Console.WriteLine($"Success photos: [{string.Join(", ", downloadResults.SuccessPhotos)}]");
-                Console.WriteLine($"Erorred photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
+                Console.WriteLine($"Errored photos: [{string.Join(", ", downloadResults.ErroredPhotos)}]");
 
             }
             catch (Exception ex)
