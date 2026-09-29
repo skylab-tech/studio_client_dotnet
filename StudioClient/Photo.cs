@@ -189,7 +189,7 @@ namespace SkylabStudio
             }
 
             byte[] photoData = photoBuffer != null ? photoBuffer : File.ReadAllBytes(photoPath);
-            if (photoData.Length > 0 && ((photoData.Length / 1024 / 1024) > MAX_PHOTO_SIZE))
+            if (photoData.Length > 0 && (photoData.Length > MAX_PHOTO_SIZE))
             {
                 throw new Exception($"{photoPath} exceeds 27MB");
             }
